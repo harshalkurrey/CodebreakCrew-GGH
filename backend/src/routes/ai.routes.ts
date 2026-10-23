@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { aiController } from '../controllers/ai.controller';
 import { verifyAuth, optionalAuth } from '../middleware/auth.middleware';
 import {
@@ -14,7 +14,7 @@ router.post(
   '/recommendations',
   optionalAuth,
   validateBody(aiRecommendationsSchema),
-  (req, res, next) => aiController.getRecommendations(req, res, next)
+  (req: Request, res: Response, next: NextFunction) => aiController.getRecommendations(req, res, next)
 );
 
 // Description assistance requires authenticated student
@@ -22,7 +22,7 @@ router.post(
   '/description',
   verifyAuth,
   validateBody(aiDescriptionSchema),
-  (req, res, next) => aiController.generateDescription(req, res, next)
+  (req: Request, res: Response, next: NextFunction) => aiController.generateDescription(req, res, next)
 );
 
 export default router;

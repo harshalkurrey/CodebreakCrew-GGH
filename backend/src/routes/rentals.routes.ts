@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { rentalsController } from '../controllers/rentals.controller';
 import { verifyAuth } from '../middleware/auth.middleware';
 import {
@@ -14,26 +14,26 @@ router.post(
   '/',
   verifyAuth,
   validateBody(createRentalSchema),
-  (req, res, next) => rentalsController.createRental(req, res, next)
+  (req: Request, res: Response, next: NextFunction) => rentalsController.createRental(req, res, next)
 );
 
 router.get(
   '/my',
   verifyAuth,
-  (req, res, next) => rentalsController.getUserRentals(req, res, next)
+  (req: Request, res: Response, next: NextFunction) => rentalsController.getUserRentals(req, res, next)
 );
 
 router.patch(
   '/:id/status',
   verifyAuth,
   validateBody(updateRentalStatusSchema),
-  (req, res, next) => rentalsController.updateRentalStatus(req, res, next)
+  (req: Request, res: Response, next: NextFunction) => rentalsController.updateRentalStatus(req, res, next)
 );
 
 router.patch(
   '/:id/return',
   verifyAuth,
-  (req, res, next) => rentalsController.confirmReturn(req, res, next)
+  (req: Request, res: Response, next: NextFunction) => rentalsController.confirmReturn(req, res, next)
 );
 
 export default router;

@@ -1,3 +1,5 @@
+import 'express';
+
 export interface AuthenticatedUser {
   uid: string;
   email: string;
