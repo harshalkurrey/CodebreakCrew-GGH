@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import type { GoogleGenAI } from '@google/genai';
 import { env } from '../config/env';
 import { getFirestore, isFirebaseConfigured } from '../config/firebaseAdmin';
 import { ItemDocument, VALID_CATEGORIES, ItemCategory } from '../types/item.types';
@@ -26,14 +26,29 @@ export class GeminiService {
 
   constructor() {
     if (env.GEMINI_API_KEY && env.GEMINI_API_KEY.trim() !== '') {
-      try {
-        this.aiClient = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-        console.log('[GeminiService] Initialized GoogleGenAI with model:', this.modelName);
-      } catch (err) {
-        console.warn('[GeminiService] Warning: Failed to initialize GoogleGenAI. AI routes will use keyword fallback.');
-      }
+      console.log('[GeminiService] GEMINI_API_KEY configured. AI client will initialize on demand.');
     } else {
       console.warn('[GeminiService] Notice: GEMINI_API_KEY is not configured. AI routes will use deterministic keyword fallback.');
+    }
+  }
+
+  /**
+   * Lazily loads the ES Module @google/genai without crashing CommonJS runtimes (e.g. Vercel Serverless).
+   */
+  private async getClient(): Promise<GoogleGenAI | null> {
+    if (this.aiClient) return this.aiClient;
+    if (!env.GEMINI_API_KEY || env.GEMINI_API_KEY.trim() === '') {
+      return null;
+    }
+    try {
+      const dynamicImport = new Function('m', 'return import(m)');
+      const { GoogleGenAI: GenAIClass } = (await dynamicImport('@google/genai')) as typeof import('@google/genai');
+      this.aiClient = new GenAIClass({ apiKey: env.GEMINI_API_KEY });
+      console.log('[GeminiService] Initialized GoogleGenAI with model:', this.modelName);
+      return this.aiClient;
+    } catch (err: any) {
+      console.warn('[GeminiService] Warning: Failed to load GoogleGenAI. AI routes will use keyword fallback:', err?.message || err);
+      return null;
     }
   }
 
@@ -65,7 +80,8 @@ export class GeminiService {
     }
 
     // Try Gemini if client is ready
-    if (this.aiClient) {
+    const aiClient = await this.getClient();
+    if (aiClient) {
       try {
         const inventoryContext = catalog.map((it) => ({
           itemId: it.itemId,
@@ -109,7 +125,7 @@ STRICT GROUNDING RULES:
 }
 `;
 
-        const response = await this.aiClient.models.generateContent({
+        const response = await aiClient.models.generateContent({
           model: this.modelName,
           contents: prompt,
           config: {
@@ -239,7 +255,8 @@ STRICT GROUNDING RULES:
     rawDetails: string,
     intendedPrice?: number
   ): Promise<{ suggestedCategory: ItemCategory; generatedDescription: string }> {
-    if (this.aiClient) {
+    const aiClient = await this.getClient();
+    if (aiClient) {
       try {
         const prompt = `
 You are an expert student assistant for CampusCycle, a campus peer-to-peer equipment rental community.
@@ -262,7 +279,7 @@ INSTRUCTIONS:
 }
 `;
 
-        const response = await this.aiClient.models.generateContent({
+        const response = await aiClient.models.generateContent({
           model: this.modelName,
           contents: prompt,
           config: {
