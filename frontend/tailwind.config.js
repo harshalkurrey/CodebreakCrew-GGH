@@ -18,8 +18,11 @@ export default {
           700: '#4338ca',
           800: '#3730a3',
           900: '#312e81',
-        },
+        }
       },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      }
     },
   },
   plugins: [],
