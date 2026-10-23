@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Equipment photos strictly under owner folder: /items/{userId}/{fileName}
+    match /items/{userId}/{fileName} {
+      // 1. Public Read: Any student/visitor can view equipment photos
+      allow read: if true;
+      
+      // 2. Authenticated Create: Uploading user must match folder UID, size < 5MB, image MIME
+      allow create: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      
+      // 3. Authenticated Update: Owner can replace file subject to same constraints
+      allow update: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      
+      // 4. Authenticated Delete: Only the owner can delete their images
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
