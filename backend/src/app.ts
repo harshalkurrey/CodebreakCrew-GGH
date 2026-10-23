@@ -15,7 +15,18 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: [env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'],
+    origin: (requestOrigin, callback) => {
+      if (!requestOrigin) return callback(null, true);
+      if (
+        requestOrigin === env.FRONTEND_URL ||
+        requestOrigin.endsWith('.vercel.app') ||
+        requestOrigin.startsWith('http://localhost:') ||
+        requestOrigin.startsWith('http://127.0.0.1:')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
