@@ -20,23 +20,28 @@ if (!getApps().length) {
       });
       isConfigured = true;
       console.log('[FirebaseAdmin] Initialized successfully with environment credentials.');
-    } else if (env.FIREBASE_SERVICE_ACCOUNT_PATH) {
-      const resolvedPath = path.resolve(process.cwd(), env.FIREBASE_SERVICE_ACCOUNT_PATH);
-      if (fs.existsSync(resolvedPath)) {
+    } else {
+      const candidatePaths = [
+        env.FIREBASE_SERVICE_ACCOUNT_PATH ? path.resolve(process.cwd(), env.FIREBASE_SERVICE_ACCOUNT_PATH) : null,
+        path.resolve(process.cwd(), 'serviceAccountKey.json'),
+        path.resolve(process.cwd(), 'backend', 'serviceAccountKey.json'),
+        path.resolve(__dirname, '..', '..', 'serviceAccountKey.json'),
+      ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
+
+      if (candidatePaths.length > 0) {
+        const resolvedPath = candidatePaths[0];
         const serviceAccount = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
         appInstance = initializeApp({
           credential: cert(serviceAccount),
         });
         isConfigured = true;
-        console.log(`[FirebaseAdmin] Initialized successfully with key file at ${resolvedPath}`);
+        console.log('[FirebaseAdmin] Initialized successfully with local service account key file.');
       } else {
-        console.warn(`[FirebaseAdmin] Warning: Service account file not found at ${resolvedPath}`);
+        console.warn(
+          '[FirebaseAdmin] Notice: Firebase credentials not supplied. Running in local fallback mode. ' +
+          'Public endpoints and catalog will use verified seeded inventory. Mutations require credentials.'
+        );
       }
-    } else {
-      console.warn(
-        '[FirebaseAdmin] Notice: Firebase credentials not supplied. Running in local fallback mode. ' +
-        'Public endpoints and catalog will use verified seeded inventory. Mutations require credentials.'
-      );
     }
   } catch (error) {
     console.warn(

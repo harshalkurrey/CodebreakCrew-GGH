@@ -13,7 +13,7 @@ export const env = {
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
 
   // Firebase Admin SDK Configuration
-  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || '',
+  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || 'campuscycle-2821c',
   FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL || '',
   // Handle escaped newlines in private key string if passed via env
   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY

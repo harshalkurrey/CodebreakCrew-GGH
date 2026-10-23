@@ -7,6 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "tsc && node dist/tests/unit.test.js",
+    "test:firestore": "tsc && node dist/tests/test_firestore.js",
+    "seed:firestore": "tsc && node dist/tests/seed_firestore.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "clean": "rimraf dist"
   },
